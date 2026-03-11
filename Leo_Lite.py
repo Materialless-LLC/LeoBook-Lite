@@ -35,6 +35,10 @@ def parse_args():
     p.add_argument("--pull",  action="store_true", help="Pull training tables from Supabase → SQLite")
     p.add_argument("--sync",  action="store_true", help="Push local SQLite → Supabase")
 
+    # Model sync (Supabase Storage)
+    p.add_argument("--push-models", action="store_true", help="Upload trained models → Supabase Storage")
+    p.add_argument("--pull-models", action="store_true", help="Download models from Supabase Storage → local")
+
     # Backtest
     p.add_argument("--backtest-rl",    action="store_true", help="Walk-forward RL backtest")
     p.add_argument("--bt-start",       default="2024-01-01")
@@ -118,7 +122,8 @@ def cmd_train_rl(args):
     )
 
     print(f"\n  [DONE] Model saved to: {MODELS_DIR}")
-    print("  Download Data/Store/models/ and place into LeoBook/Data/Store/models/\n")
+    print("  → Run: python Leo_Lite.py --push-models   (to upload to Supabase Storage)")
+    print("  → Or download Data/Store/models/ manually and place into LeoBook/Data/Store/models/\n")
 
 
 # ── Backtest RL ───────────────────────────────────────────────────────────────
@@ -145,6 +150,14 @@ if __name__ == "__main__":
     elif args.sync:
         asyncio.run(cmd_sync())
 
+    elif args.push_models:
+        from Data.Access.model_sync import ModelSync
+        ModelSync().push()
+
+    elif args.pull_models:
+        from Data.Access.model_sync import ModelSync
+        ModelSync().pull()
+
     elif args.train_rl:
         cmd_train_rl(args)
 
@@ -156,5 +169,7 @@ if __name__ == "__main__":
         print("  python Leo_Lite.py --pull                         # Fetch training data from Supabase")
         print("  python Leo_Lite.py --train-rl --phase 1 --resume  # Train RL (Phase 1)")
         print("  python Leo_Lite.py --train-rl --phase 1 --cold    # Cold start")
+        print("  python Leo_Lite.py --push-models                  # Upload models → Supabase Storage")
+        print("  python Leo_Lite.py --pull-models                  # Download models ← Supabase Storage")
         print("  python Leo_Lite.py --backtest-rl                  # Walk-forward backtest")
         print("  python Leo_Lite.py --sync                         # Push local → Supabase\n")
