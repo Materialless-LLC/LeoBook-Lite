@@ -126,40 +126,20 @@ class ModelSync:
                 skipped += 1
                 continue
 
-            # Progress indicator with tqdm
+            # Progress indicator with tqdm.wrapattr (more robust proxy)
             t0 = time.time()
             try:
+                file_size = local_path.stat().st_size
                 with open(local_path, "rb") as f:
-                    # Supabase storage.upload can accept a file-like object for streaming.
-                    # We wrap it in a simple class to track progress periodically.
-                    
-                    file_size = local_path.stat().st_size
-                    
-                    with tqdm(
+                    with tqdm.wrapattr(
+                        f, "read",
                         total=file_size,
                         unit='B',
                         unit_scale=True,
                         unit_divisor=1024,
                         desc=f"    [{i}/{len(files)}] {remote_path}",
                         leave=False
-                    ) as pbar:
-                        # Simple wrapper to update pbar
-                        class ProgressWrapper:
-                            def __init__(self, fileobj, pbar):
-                                self.fileobj = fileobj
-                                self.pbar = pbar
-                            def read(self, n=-1):
-                                chunk = self.fileobj.read(n)
-                                if chunk:
-                                    self.pbar.update(len(chunk))
-                                return chunk
-                            def __iter__(self):
-                                return self.fileobj
-                            def __len__(self):
-                                return file_size
-
-                        wrapped_file = ProgressWrapper(f, pbar)
-
+                    ) as wrapped_file:
                         self.supabase.storage.from_(BUCKET_NAME).upload(
                             path=remote_path,
                             file=wrapped_file,
