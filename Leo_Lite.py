@@ -39,6 +39,7 @@ def parse_args():
     p.add_argument("--push-models", action="store_true", help="Upload trained models → Supabase Storage")
     p.add_argument("--pull-models", action="store_true", help="Download models from Supabase Storage → local")
     p.add_argument("--skip-large",  action="store_true", help="Skip files > 50 MB during --push-models")
+    p.add_argument("--all-checkpoints", action="store_true", help="Force sync all files in checkpoints/ folder (default: False)")
 
     # Backtest
     p.add_argument("--backtest-rl",    action="store_true", help="Walk-forward RL backtest")
@@ -153,7 +154,10 @@ if __name__ == "__main__":
 
     elif args.push_models:
         from Data.Access.model_sync import ModelSync
-        ModelSync(skip_large=getattr(args, 'skip_large', False)).push()
+        ModelSync(
+            skip_large=getattr(args, 'skip_large', False),
+            all_checkpoints=getattr(args, 'all_checkpoints', False)
+        ).push()
 
     elif args.pull_models:
         from Data.Access.model_sync import ModelSync
