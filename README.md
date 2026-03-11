@@ -36,31 +36,33 @@ python Leo_Lite.py --pull
 
 # 4. Train — Phase 1: Imitation Learning
 python Leo_Lite.py --train-rl --phase 1 --resume
-#   → Prints daily: Rule Acc / RL Acc / KL / ImitLoss / GradNorm per day
-#   → Checkpoints saved per day to Data/Store/models/checkpoints/
-#   → Latest always at Data/Store/models/phase1_latest.pth
+#   → Prints daily training stats
 
-# (Optional) Resume after interruption
-python Leo_Lite.py --train-rl --phase 1 --resume
-
-# (Optional) Walk-forward backtest
-python Leo_Lite.py --backtest-rl --bt-start 2024-06-01
+# 5. Sync Models to Supabase Storage
+python Leo_Lite.py --push-models            # Upload trained models
+python Leo_Lite.py --push-models --skip-large # Upload ONLY final trunk + adapters
 ```
 
 ---
 
 ## After training — copy models to main LeoBook
 
-Download the following files from Codespace and copy into **`LeoBook/Data/Store/models/`**:
+You can use the automated sync:
+1. In Codespace: `python Leo_Lite.py --push-models`
+2. Locally: `python Leo.py --pull-models`
 
-```
-Data/Store/models/leobook_base.pth        ← final trained model
-Data/Store/models/phase1_latest.pth       ← latest phase 1 checkpoint  
-Data/Store/models/adapter_registry.json   ← league/team adapter index
-Data/Store/models/checkpoints/            ← daily checkpoints (optional)
-```
+Or download manually from **`Data/Store/models/`**:
+- `leobook_base.pth`
+- `adapter_registry.json`
+- `phase1_latest.pth`
 
-These filenames are identical to what main LeoBook expects — it's a drop-in replace.
+---
+
+## Troubleshooting
+
+- **ModuleNotFoundError: No module named 'playwright'**: This is fixed. LeoBook Lite is now independent of Playwright for training.
+- **Sync hanging**: If a checkpoint is >500MB, it may take a few minutes. Use the progress indicators to monitor speed.
+
 
 ---
 
