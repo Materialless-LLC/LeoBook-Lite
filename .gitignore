@@ -1,0 +1,30 @@
+# LeoBook Lite — .gitignore
+
+# Env & secrets
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+
+# SQLite database (large, pulled fresh in Codespace)
+Data/Store/leobook.db
+Data/Store/leobook.db-shm
+Data/Store/leobook.db-wal
+Data/Access/league_db.sqlite
+
+# Model checkpoints ARE committed (they are the output to download)
+# Only ignore temp/lock files
+*.lock
+
+# Logs
+Logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

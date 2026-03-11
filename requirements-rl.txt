@@ -1,0 +1,16 @@
+# LeoBook Lite — Requirements
+# Install: pip install -r requirements-rl.txt
+
+# ── RL Training ──────────────────────────────────────────────
+--index-url https://download.pytorch.org/whl/cpu
+torch>=2.0.0
+
+--index-url https://pypi.org/simple/
+numpy>=1.24.0
+safetensors>=0.4.0
+
+# ── Supabase sync / pull ─────────────────────────────────────
+supabase>=1.0.0
+pandas>=2.0.0
+tqdm>=4.0.0
+python-dotenv>=1.0.0
