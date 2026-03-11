@@ -7,7 +7,12 @@ import asyncio
 import functools
 import time
 from typing import Callable, Any, Optional, Dict
-from playwright.async_api import Page, TimeoutError
+try:
+    from playwright.async_api import Page, TimeoutError
+except ImportError:
+    # Fallback for Lite environments (e.g. Codespaces training)
+    Page = Any
+    TimeoutError = Exception
 
 class AIGOSuite:
     """
