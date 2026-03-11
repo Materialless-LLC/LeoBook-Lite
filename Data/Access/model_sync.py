@@ -126,28 +126,50 @@ class ModelSync:
                 skipped += 1
                 continue
 
-            # Progress indicator with tqdm.wrapattr (more robust proxy)
+            # Progress indicator with background polling thread
+            # (Raw file object ensures maximum compatibility with Supabase client)
             t0 = time.time()
             try:
                 file_size = local_path.stat().st_size
                 with open(local_path, "rb") as f:
-                    with tqdm.wrapattr(
-                        f, "read",
+                    stop_event = threading.Event()
+                    
+                    with tqdm(
                         total=file_size,
                         unit='B',
                         unit_scale=True,
                         unit_divisor=1024,
                         desc=f"    [{i}/{len(files)}] {remote_path}",
                         leave=False
-                    ) as wrapped_file:
-                        self.supabase.storage.from_(BUCKET_NAME).upload(
-                            path=remote_path,
-                            file=wrapped_file,
-                            file_options={
-                                "x-upsert": "true",
-                                "content-type": "application/octet-stream"
-                            },
-                        )
+                    ) as pbar:
+                        
+                        def poll_progress():
+                            while not stop_event.is_set():
+                                try:
+                                    curr = f.tell()
+                                    pbar.n = curr
+                                    pbar.refresh()
+                                except:
+                                    pass
+                                time.sleep(0.2)
+                        
+                        monitor_thread = threading.Thread(target=poll_progress, daemon=True)
+                        monitor_thread.start()
+                        
+                        try:
+                            self.supabase.storage.from_(BUCKET_NAME).upload(
+                                path=remote_path,
+                                file=f,
+                                file_options={
+                                    "x-upsert": "true",
+                                    "content-type": "application/octet-stream"
+                                },
+                            )
+                        finally:
+                            stop_event.set()
+                            monitor_thread.join(timeout=1.0)
+                            pbar.n = file_size
+                            pbar.refresh()
 
                 elapsed = time.time() - t0
                 uploaded += 1
